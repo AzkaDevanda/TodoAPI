@@ -13,6 +13,8 @@ import com.todoList_API_v1.TodoAPI.model.TokenResponse;
 import com.todoList_API_v1.TodoAPI.repository.UserRepository;
 import com.todoList_API_v1.TodoAPI.security.BCrypt;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class AuthService {
 
@@ -22,6 +24,7 @@ public class AuthService {
     @Autowired
     private ValidationService validation;
 
+    @Transactional
     public TokenResponse loginUser(LoginUserRequest request) {
         validation.validate(request);
 
@@ -43,5 +46,11 @@ public class AuthService {
 
     private Long next30Days() {
         return System.currentTimeMillis() + (30 * 24 * 60 * 60 * 1000);
+    }
+
+    public void logOut(User user){
+        user.setToken(null);
+        user.setTokenExpiredAt(null);
+        userRepository.save(user);
     }
 }
