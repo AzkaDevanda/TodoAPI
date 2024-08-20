@@ -62,4 +62,53 @@ public class AuthControllerTest {
                     assertNotNull(response.getErrors());
                 });
     }
+
+    // Test Failed
+    @Test
+    void logoutFailed() throws Exception {
+        mockMvc.perform(
+                delete("/api/auth/logout")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpectAll(
+                        status().isUnauthorized())
+                .andDo(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                            new TypeReference<>() {
+                            });
+                    assertNotNull(response.getErrors());
+                });
+    }
+
+    
+
+    // Test Success
+    @Test
+    void logoutSuccess() throws Exception {
+        User user = new User();
+        user.setUsername("test");
+        user.setName("Test");
+        user.setPassword(BCrypt.hashpw("rahasia", BCrypt.gensalt()));
+        user.setToken("test");
+        user.setTokenExpiredAt(System.currentTimeMillis() + 10000000L);
+        userRepository.save(user);
+
+        mockMvc.perform(
+                delete("/api/auth/logout")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "test"))
+                .andExpectAll(
+                        status().isOk())
+                .andDo(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                            new TypeReference<>() {
+                            });
+                    assertNull(response.getErrors());
+                    assertEquals("User logged out successfully", response.getData());
+
+                    User userDb = userRepository.findById("test").orElse(null);
+                    assertNotNull(userDb);
+                    assertNull(userDb.getTokenExpiredAt());
+                    assertNull(userDb.getToken());
+                });
+    }
 }
