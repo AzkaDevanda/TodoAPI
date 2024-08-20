@@ -48,6 +48,7 @@ public class AuthService {
         return System.currentTimeMillis() + (30 * 24 * 60 * 60 * 1000);
     }
 
+    @Transactional
     public void logOut(User user){
         user.setToken(null);
         user.setTokenExpiredAt(null);
