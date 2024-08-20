@@ -25,9 +25,9 @@ public class AuthController {
         return WebResponse.<TokenResponse>builder().data(response).build();
     }
 
-    @DeleteMapping(path = "/api/auth/logout", produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(path = "api/auth/logout", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<String> logoutUser(User user) {
         authService.logOut(user);
-        return WebResponse.<String>builder().data("Ok").build();
+        return WebResponse.<String>builder().data("User logged out successfully").build();
     }
 }

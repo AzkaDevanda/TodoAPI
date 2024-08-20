@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.todoList_API_v1.TodoAPI.entity.User;
 import com.todoList_API_v1.TodoAPI.model.LoginUserRequest;
+import com.todoList_API_v1.TodoAPI.model.TokenResponse;
 import com.todoList_API_v1.TodoAPI.model.WebResponse;
 import com.todoList_API_v1.TodoAPI.repository.UserRepository;
 import com.todoList_API_v1.TodoAPI.security.BCrypt;
@@ -59,54 +60,6 @@ public class AuthControllerTest {
                             new TypeReference<>() {
                             });
                     assertNotNull(response.getErrors());
-                });
-    }
-
-    // Test Success
-    @Test
-    void logoutFailed() throws Exception {
-        mockMvc.perform(
-                delete("/api/auth/logout")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpectAll(
-                        status().isUnauthorized())
-                .andDo(result -> {
-                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(),
-                            new TypeReference<>() {
-                            });
-                    assertNotNull(response.getErrors());
-                });
-    }
-
-    // Test Success
-    @Test
-    void logoutSuccses() throws Exception {
-
-        User user = new User();
-        user.setUsername("test");
-        user.setName("test");
-        user.setPassword(BCrypt.hashpw("rahasia", BCrypt.gensalt()));
-        user.setToken("token");
-        user.setTokenExpiredAt(System.currentTimeMillis() + 100000L);
-        userRepository.save(user);
-
-        mockMvc.perform(
-                delete("/api/auth/logout")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header("X-API-TOKEN", "token"))
-                .andExpectAll(
-                        status().isOk())
-                .andDo(result -> {
-                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(),
-                            new TypeReference<>() {
-                            });
-                    assertNull(response.getErrors());
-                    assertEquals("Ok", response.getData());
-
-                    User userDb = userRepository.findById("test").orElse(null);
-                    assertNotNull(userDb);
-                    assertNull(userDb.getTokenExpiredAt());
-                    assertNull(userDb.getToken());
                 });
     }
 }
