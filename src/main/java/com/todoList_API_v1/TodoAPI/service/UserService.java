@@ -1,5 +1,7 @@
 package com.todoList_API_v1.TodoAPI.service;
 
+import java.util.Objects;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -7,6 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.todoList_API_v1.TodoAPI.entity.User;
 import com.todoList_API_v1.TodoAPI.model.RegisterUserRequest;
+import com.todoList_API_v1.TodoAPI.model.UpdateUserRequest;
 import com.todoList_API_v1.TodoAPI.model.UserResponse;
 import com.todoList_API_v1.TodoAPI.repository.UserRepository;
 import com.todoList_API_v1.TodoAPI.security.BCrypt;
@@ -39,6 +42,23 @@ public class UserService {
     }
 
     public UserResponse get(User user) {
+        return UserResponse.builder().username(user.getUsername()).name(user.getName()).build();
+    }
+
+    @Transactional
+    public UserResponse updateUser(User user, UpdateUserRequest request) {
+        validation.validate(request);
+
+        if (Objects.nonNull(request.getName())) {
+            user.setName(request.getName());
+        }
+
+        if (Objects.nonNull(request.getPassword())) {
+            user.setPassword(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()));
+        }
+
+        userRepository.save(user);
+
         return UserResponse.builder().username(user.getUsername()).name(user.getName()).build();
     }
 
