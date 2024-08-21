@@ -13,15 +13,15 @@ import com.todoList_API_v1.TodoAPI.model.TokenResponse;
 import com.todoList_API_v1.TodoAPI.model.WebResponse;
 import com.todoList_API_v1.TodoAPI.repository.UserRepository;
 import com.todoList_API_v1.TodoAPI.security.BCrypt;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.MockMvcBuilder.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 
