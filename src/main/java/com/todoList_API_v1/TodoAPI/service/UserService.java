@@ -41,4 +41,5 @@ public class UserService {
     public UserResponse get(User user) {
         return UserResponse.builder().username(user.getUsername()).name(user.getName()).build();
     }
+
 }
