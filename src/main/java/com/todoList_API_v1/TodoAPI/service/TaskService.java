@@ -89,4 +89,13 @@ public class TaskService {
 
         return createResponse(task);
     }
+
+    @Transactional
+    public void deleteTask(User user, String taskId) {
+        Task task = taskRepository.findFirstByUserAndId(user, taskId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No Task Found"));
+        taskRepository.delete(task);
+    }
+
+    
 }

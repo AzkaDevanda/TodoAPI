@@ -2,6 +2,7 @@ package com.todoList_API_v1.TodoAPI.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,8 +38,15 @@ public class TaskController {
     }
 
     @PatchMapping(path = "api/tasks/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public WebResponse<TaskResponse> updateTask(User user, @PathVariable String id, @RequestBody UpdateTaskRequest request) {
+    public WebResponse<TaskResponse> updateTask(User user, @PathVariable String id,
+            @RequestBody UpdateTaskRequest request) {
         TaskResponse response = taskService.updateTask(user, id, request);
         return WebResponse.<TaskResponse>builder().data(response).build();
+    }
+
+    @DeleteMapping(path = "api/tasks/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public WebResponse<String> deleteTask(User user, @PathVariable String id) {
+        taskService.deleteTask(user, id);
+        return WebResponse.<String>builder().data("Task deleted successfully").build();
     }
 }
