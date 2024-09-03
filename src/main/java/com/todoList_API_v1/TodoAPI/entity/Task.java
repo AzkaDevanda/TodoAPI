@@ -1,5 +1,8 @@
 package com.todoList_API_v1.TodoAPI.entity;
 
+import java.util.Optional;
+
+import jakarta.annotation.Generated;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;

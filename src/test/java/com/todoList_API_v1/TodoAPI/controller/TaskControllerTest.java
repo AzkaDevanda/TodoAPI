@@ -7,6 +7,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.todoList_API_v1.TodoAPI.entity.Task;
 import com.todoList_API_v1.TodoAPI.entity.User;
 import com.todoList_API_v1.TodoAPI.model.CreateTaskRequest;
 import com.todoList_API_v1.TodoAPI.model.TaskResponse;
@@ -14,6 +15,7 @@ import com.todoList_API_v1.TodoAPI.model.WebResponse;
 import com.todoList_API_v1.TodoAPI.repository.TaskRepository;
 import com.todoList_API_v1.TodoAPI.repository.UserRepository;
 import com.todoList_API_v1.TodoAPI.security.BCrypt;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -77,31 +79,57 @@ public class TaskControllerTest {
     // Test Success
     @Test
     void createTaskSuccess() throws Exception {
-        CreateTaskRequest request = new CreateTaskRequest();
-        request.setTask("taks1");
-        request.setDescription("desc1");
-        request.setDeadline("selasa, 12 januari 2003");
+        
+        User user = new User();
+        user.setUsername("test");
+        user.setPassword(BCrypt.hashpw("test", BCrypt.gensalt()));
+        user.setName("Test");
+        user.setToken("test");
+        user.setTokenExpiredAt(System.currentTimeMillis() + 1000000);
+        userRepository.save(user);
+
+        for (int i = 0; i < 5; i++){
+                Task task = new Task();
+                task.setId("test-"+i);
+                task.setTask("taks" + i);
+                task.setDescription("desc" + i);
+                task.setDeadline("selasa, 12 januari 2003");
+                task.setCompleted(false);
+                task.setUser(user);
+                taskRepository.save(task);
+        }
 
         mockMvc.perform(
-                post("/api/tasks")
+                get("/api/tasks")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
-                        .header("X-API-TOKEN", "test")
-                        .content(objectMapper.writeValueAsString(request)))
+                        .header("X-API-TOKEN", "test"))
                 .andExpectAll(status().isOk()).andDo(result -> {
-                    WebResponse<TaskResponse> response = objectMapper.readValue(
+                    WebResponse<List<TaskResponse>> response = objectMapper.readValue(
                             result.getResponse().getContentAsString(),
                             new TypeReference<>() {
                             });
-                    assertNull(response.getErrors());
-
-                    assertEquals("taks1", response.getData().getTask());
-                    assertEquals("desc1", response.getData().getDescription());
-                    assertEquals("selasa, 12 januari 2003", response.getData().getDeadline());
-                    assertEquals(false, response.getData().isCompleted());
-
-                    assertTrue(taskRepository.findById(response.getData().getId()).isPresent());
+                        assertNull(response.getErrors());
+                        assertEquals(5, response.getData().size());
                 });
 
     }
+
+    @Test
+    void getTaskNotFound() throws Exception {
+
+        mockMvc.perform(
+                get("/api/tasks")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "test")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpectAll(status().isNotFound()).andDo(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                            new TypeReference<>() {
+                            });
+                    assertNotNull(response.getErrors());
+                });
+    }
+
+    
 }
