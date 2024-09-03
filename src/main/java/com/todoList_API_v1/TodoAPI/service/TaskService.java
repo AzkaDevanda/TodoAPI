@@ -64,11 +64,8 @@ public class TaskService {
 
     @Transactional
     public TaskResponse updateTask(User user, String taskId, UpdateTaskRequest request) {
-        Task task = taskRepository.findById(taskId).orElseThrow();
-
-        if (!user.getTask().contains(task)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Task does not belong to the user");
-        }
+        Task task = taskRepository.findFirstByUserAndId(user, taskId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No Task Found"));
 
         validation.validate(request);
 
@@ -80,7 +77,7 @@ public class TaskService {
             task.setDescription(request.getDescription());
         }
 
-        if (Objects.nonNull(request.isCompleted())) {
+        if (request.isCompleted()) {
             task.setCompleted(request.isCompleted());
         }
 

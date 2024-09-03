@@ -11,6 +11,7 @@ import com.todoList_API_v1.TodoAPI.entity.Task;
 import com.todoList_API_v1.TodoAPI.entity.User;
 import com.todoList_API_v1.TodoAPI.model.CreateTaskRequest;
 import com.todoList_API_v1.TodoAPI.model.TaskResponse;
+import com.todoList_API_v1.TodoAPI.model.UpdateTaskRequest;
 import com.todoList_API_v1.TodoAPI.model.WebResponse;
 import com.todoList_API_v1.TodoAPI.repository.TaskRepository;
 import com.todoList_API_v1.TodoAPI.repository.UserRepository;
@@ -46,13 +47,13 @@ public class TaskControllerTest {
         taskRepository.deleteAll();
         userRepository.deleteAll();
 
-        User user = new User();
-        user.setUsername("test");
-        user.setPassword(BCrypt.hashpw("test", BCrypt.gensalt()));
-        user.setName("Test");
-        user.setToken("test");
-        user.setTokenExpiredAt(System.currentTimeMillis() + 1000000);
-        userRepository.save(user);
+        // User user = new User();
+        // user.setUsername("test");
+        // user.setPassword(BCrypt.hashpw("test", BCrypt.gensalt()));
+        // user.setName("Test");
+        // user.setToken("test");
+        // user.setTokenExpiredAt(System.currentTimeMillis() + 1000000);
+        // userRepository.save(user);
     }
 
     // test Success
@@ -129,6 +130,93 @@ public class TaskControllerTest {
                             new TypeReference<>() {
                             });
                     assertNotNull(response.getErrors());
+                });
+    }
+
+    // Test Success
+    @Test
+    void updateTaskNotFound() throws Exception {
+        User user = new User();
+        user.setUsername("test");
+        user.setPassword(BCrypt.hashpw("test", BCrypt.gensalt()));
+        user.setName("Test");
+        user.setToken("test");
+        user.setTokenExpiredAt(System.currentTimeMillis() + 1000000);
+        userRepository.save(user);
+
+        for (int i = 0; i < 5; i++){
+                Task task = new Task();
+                task.setId("test-"+i);
+                task.setTask("taks" + i);
+                task.setDescription("desc" + i);
+                task.setDeadline("selasa, 12 januari 2003");
+                task.setCompleted(false);
+                task.setUser(user);
+                taskRepository.save(task);
+        }
+
+        UpdateTaskRequest request = new UpdateTaskRequest();
+        request.setCompleted(true);
+        request.setDeadline("selasa, 21 januari 2003");
+
+        mockMvc.perform(
+                patch("/api/tasks/test-10")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "test")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpectAll(status().isNotFound()).andDo(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                            new TypeReference<>() {
+                            });
+                    assertNotNull(response.getErrors());
+                });
+    }
+
+    // Test Success
+    @Test
+    void updateTaskSuccess() throws Exception {
+        User user = new User();
+        user.setUsername("test");
+        user.setPassword(BCrypt.hashpw("test", BCrypt.gensalt()));
+        user.setName("Test");
+        user.setToken("test");
+        user.setTokenExpiredAt(System.currentTimeMillis() + 1000000);
+        userRepository.save(user);
+
+        for (int i = 0; i < 5; i++){
+                Task task = new Task();
+                task.setId("test-"+i);
+                task.setTask("taks" + i);
+                task.setDescription("desc" + i);
+                task.setDeadline("selasa, 12 januari 2003");
+                task.setCompleted(false);
+                task.setUser(user);
+                taskRepository.save(task);
+        }
+
+        UpdateTaskRequest request = new UpdateTaskRequest();
+        request.setCompleted(true);
+        request.setDeadline("selasa, 21 januari 2003");
+
+        mockMvc.perform(
+                patch("/api/tasks/test-1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "test")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpectAll(status().isOk()).andDo(result -> {
+                    WebResponse<TaskResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                            new TypeReference<>() {
+                            });
+                    assertNull(response.getErrors());
+                    assertEquals(true, response.getData().isCompleted());
+                    assertEquals("selasa, 21 januari 2003", response.getData().getDeadline());
+
+                    Task taskDB = taskRepository.findById("test-1").orElse(null);
+                    assertNotNull(taskDB);
+                    assertEquals(true, taskDB.isCompleted());;
+
                 });
     }
 
