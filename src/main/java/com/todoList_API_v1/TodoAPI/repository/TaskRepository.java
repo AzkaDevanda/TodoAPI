@@ -14,4 +14,6 @@ public interface TaskRepository extends JpaRepository<Task, String> {
 
     List<Task> findAllByUser(User user);
 
+    
+
 }

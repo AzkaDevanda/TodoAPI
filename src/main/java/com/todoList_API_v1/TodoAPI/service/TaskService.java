@@ -1,6 +1,8 @@
 package com.todoList_API_v1.TodoAPI.service;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -8,11 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-
 import com.todoList_API_v1.TodoAPI.entity.Task;
 import com.todoList_API_v1.TodoAPI.entity.User;
 import com.todoList_API_v1.TodoAPI.model.CreateTaskRequest;
 import com.todoList_API_v1.TodoAPI.model.TaskResponse;
+import com.todoList_API_v1.TodoAPI.model.UpdateTaskRequest;
 import com.todoList_API_v1.TodoAPI.repository.TaskRepository;
 
 @Service
@@ -54,6 +56,40 @@ public class TaskService {
     @Transactional(readOnly = true)
     public List<TaskResponse> getTask(User user) {
         List<Task> task = taskRepository.findAllByUser(user);
-        return task.stream().map(this::createResponse).toList();
+        return Optional.ofNullable(task)
+                .filter(tasks -> !tasks.isEmpty())
+                .map(tasks -> tasks.stream().map(this::createResponse).toList())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No Task Found"));
+    }
+
+    @Transactional
+    public TaskResponse updateTask(User user, String taskId, UpdateTaskRequest request) {
+        Task task = taskRepository.findById(taskId).orElseThrow();
+
+        if (!user.getTask().contains(task)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Task does not belong to the user");
+        }
+
+        validation.validate(request);
+
+        if (Objects.nonNull(request.getTask())) {
+            task.setTask(request.getTask());
+        }
+
+        if (Objects.nonNull(request.getDescription())) {
+            task.setDescription(request.getDescription());
+        }
+
+        if (Objects.nonNull(request.isCompleted())) {
+            task.setCompleted(request.isCompleted());
+        }
+
+        if (Objects.nonNull(request.getDeadline())) {
+            task.setDeadline(request.getDeadline());
+        }
+
+        taskRepository.save(task);
+
+        return createResponse(task);
     }
 }
